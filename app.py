@@ -38,7 +38,7 @@ def summarize():
     usernames = data.get("usernames", [])
     hours = int(data.get("time_window", 72))
     
-    now = datetime.utcnow()
+    now = datetime.now()
     time_threshold = now - timedelta(hours=hours)
     BASE_URL = "https://api.github.com/users/{}/events/public"
     
@@ -79,7 +79,7 @@ def summarize():
                 raw_map[repo].append(f"[{username}] Issue {action}: {title}")
 
     ai_input = "\n".join(ai_friendly_report)
-
+    print(ai_input)
     try:
         response = model.generate_content(ai_input, generation_config=generation_config)
         return jsonify({
