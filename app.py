@@ -28,6 +28,11 @@ generation_config = {
     "temperature": 2.0
 }
 
+headers = {
+    "Authorization": f"token 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",
+    "Accept": "application/vnd.github.v3+json"
+}
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -46,7 +51,9 @@ def summarize():
     raw_map = defaultdict(list)  # repo -> list of raw lines
 
     for username in usernames:
-        response = requests.get(BASE_URL.format(username))
+        response = requests.get(BASE_URL.format(username), headers=headers)
+        print(response.status_code)
+        print(response.json())
         if response.status_code != 200:
             continue
         events = response.json()
