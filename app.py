@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timedelta
 import requests
 import google.generativeai as genai
+from collections import defaultdict
 
 app = Flask(__name__)
 genai.configure(api_key="AIzaSyBNfWzgEc_NB9A1Ke81wGpPUltLOArXfnM")
@@ -42,6 +43,7 @@ def summarize():
     BASE_URL = "https://api.github.com/users/{}/events/public"
     
     ai_friendly_report = []
+    raw_map = defaultdict(list)  # repo -> list of raw lines
 
     for username in usernames:
         response = requests.get(BASE_URL.format(username))
@@ -55,27 +57,36 @@ def summarize():
                 continue
             repo = event["repo"]["name"]
 
-            # Commits
             if event["type"] == "PushEvent":
                 for commit in event['payload']['commits']:
                     msg = commit.get("message", "").strip()
-                    ai_friendly_report.append(f"{repo}: Commit - {msg}")
+                    entry = f"{repo}: Commit - {msg}"
+                    ai_friendly_report.append(entry)
+                    raw_map[repo].append(f"[{username}] Commit: {msg}")
 
             elif event["type"] == "PullRequestEvent":
                 action = event['payload'].get("action", "unknown")
                 title = event['payload'].get("pull_request", {}).get("title", "").strip()
-                ai_friendly_report.append(f"{repo}: Pull Request {action} - {title}")
+                entry = f"{repo}: Pull Request {action} - {title}"
+                ai_friendly_report.append(entry)
+                raw_map[repo].append(f"[{username}] PR {action}: {title}")
 
             elif event["type"] == "IssuesEvent":
                 action = event['payload'].get("action", "unknown")
                 title = event['payload'].get("issue", {}).get("title", "").strip()
-                ai_friendly_report.append(f"{repo}: Issue {action} - {title}")
+                entry = f"{repo}: Issue {action} - {title}"
+                ai_friendly_report.append(entry)
+                raw_map[repo].append(f"[{username}] Issue {action}: {title}")
 
     ai_input = "\n".join(ai_friendly_report)
 
     try:
         response = model.generate_content(ai_input, generation_config=generation_config)
-        return jsonify({"success": True, "summary": response.text})
+        return jsonify({
+            "success": True,
+            "summary": response.text,
+            "raw_map": raw_map
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 

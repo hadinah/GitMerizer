@@ -109,6 +109,21 @@
       text-decoration: underline;
     }
 
+    .raw-log {
+      display: none;
+      margin: 1rem 0;
+      background: #0f172a;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .repo-toggle {
+      cursor: pointer;
+    }
+
     .spinner {
       margin-top: 2rem;
       border: 4px solid rgba(255, 255, 255, 0.1);
@@ -124,9 +139,7 @@
     }
 
     @media (max-width: 600px) {
-      input {
-        width: 100%;
-      }
+      input { width: 100%; }
     }
   </style>
 </head>
@@ -141,7 +154,6 @@
   </div>
 
   <div id="loading" style="display:none;"><div class="spinner"></div></div>
-
   <div id="summary">Summary will appear here...</div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -165,9 +177,31 @@
       const data = await res.json();
       document.getElementById("loading").style.display = "none";
 
-      const rawMD = data.summary || "❌ Error: " + (data.error || "Unknown");
-      const cleanHTML = DOMPurify.sanitize(marked.parse(rawMD));
-      document.getElementById("summary").innerHTML = cleanHTML;
+      if (!data.success) {
+        document.getElementById("summary").textContent = "❌ " + (data.error || "Unknown error");
+        return;
+      }
+
+      const summaryMD = data.summary;
+      const rawMap = data.raw_map || {};
+      let html = DOMPurify.sanitize(marked.parse(summaryMD));
+
+      // Add raw toggles per repo
+      Object.keys(rawMap).forEach(repo => {
+        const safeId = repo.replace(/[^\w-]/g, "_");
+        const logHTML = `<div class="raw-log" id="log_${safeId}" style="display: none;">${rawMap[repo].join("<br>")}</div>`;
+        html = html.replace(
+          new RegExp(`(<h2[^>]*>\\s*.*${repo}.*?<\\/h2>)`),
+          `$1\n<p class="repo-toggle" onclick="toggleRaw('${safeId}')">📂 Show/Hide Raw Activity</p>\n${logHTML}`
+        );
+      });
+
+      document.getElementById("summary").innerHTML = html;
+    }
+
+    function toggleRaw(id) {
+      const log = document.getElementById("log_" + id);
+      if (log) log.style.display = (log.style.display === "none") ? "block" : "none";
     }
   </script>
 
