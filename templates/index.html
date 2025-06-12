@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🌐 GitHub AI Summarizer</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #7c3aed;        /* Deep purple */
+      --accent-hover: #6d28d9;
+      --highlight: #2dd4bf;     /* 💚 Soft cyan (replaces ugly yellow) */
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: 'Fira Code', monospace;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: var(--accent);
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-box {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 0 18px rgba(124, 58, 237, 0.15);
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    input, button {
+      font-family: inherit;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+
+    input {
+      background-color: #334155;
+      color: var(--text-main);
+      width: 260px;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+    }
+
+    #summary {
+      background-color: var(--card-bg);
+      padding: 1.8rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.12);
+      max-width: 920px;
+      width: 100%;
+    }
+
+    #summary h1, #summary h2, #summary h3 {
+      color: var(--accent);
+      margin-top: 1.5rem;
+    }
+
+    #summary p {
+      line-height: 1.7;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+
+    #summary em {
+      color: var(--text-muted);
+    }
+
+    #summary strong {
+      color: var(--highlight);
+    }
+
+    #summary code {
+      background: #0f172a;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      color: var(--highlight);
+    }
+
+    #summary a {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    .spinner {
+      margin-top: 2rem;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--accent);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🧠 GitHub AI Activity Summarizer</h2>
+
+  <div class="input-box">
+    <input id="usernames" placeholder="GitHub usernames (comma-separated)" />
+    <input id="hours" type="number" placeholder="Time window (hours)" value="72" />
+    <button onclick="generateSummary()">Summarize</button>
+  </div>
+
+  <div id="loading" style="display:none;"><div class="spinner"></div></div>
+
+  <div id="summary">Summary will appear here...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js"></script>
+
+  <script>
+    async function generateSummary() {
+      const usernames = document.getElementById("usernames").value
+        .split(",").map(u => u.trim()).filter(Boolean);
+      const hours = parseInt(document.getElementById("hours").value || "72");
+
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("summary").innerHTML = "";
+
+      const res = await fetch("/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames, time_window: hours })
+      });
+
+      const data = await res.json();
+      document.getElementById("loading").style.display = "none";
+
+      const rawMD = data.summary || "❌ Error: " + (data.error || "Unknown");
+      const cleanHTML = DOMPurify.sanitize(marked.parse(rawMD));
+      document.getElementById("summary").innerHTML = cleanHTML;
+    }
+  </script>
+
+</body>
+</html>
