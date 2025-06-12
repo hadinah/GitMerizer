@@ -52,8 +52,7 @@ def summarize():
 
     for username in usernames:
         response = requests.get(BASE_URL.format(username), headers=headers)
-        print(response.status_code)
-        print(response.json())
+        print("Git response Status:", response.status_code)
         if response.status_code != 200:
             continue
         events = response.json()
