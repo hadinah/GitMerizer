@@ -1,2 +1,2 @@
 # GitMerizer
- (Git)hub Sum(Merizer)
+ **Git**hub Sum**Merizer**
