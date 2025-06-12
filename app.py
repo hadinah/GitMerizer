@@ -29,7 +29,6 @@ generation_config = {
 }
 
 headers = {
-    "Authorization": f"token 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",
     "Accept": "application/vnd.github.v3+json"
 }
 
