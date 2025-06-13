@@ -149,7 +149,7 @@
 
   <div class="input-box">
     <input id="usernames" placeholder="GitHub usernames (comma-separated)" />
-    <input id="hours" type="number" placeholder="Time window (hours)" value="240" />
+    <input id="hours" type="number" placeholder="Time window (hours)" value="2400" />
     <button onclick="generateSummary()">Summarize</button>
   </div>
 
@@ -163,7 +163,7 @@
     async function generateSummary() {
       const usernames = document.getElementById("usernames").value
         .split(",").map(u => u.trim()).filter(Boolean);
-      const hours = parseInt(document.getElementById("hours").value || "240");
+      const hours = parseInt(document.getElementById("hours").value || "2400");
 
       document.getElementById("loading").style.display = "block";
       document.getElementById("summary").innerHTML = "";
