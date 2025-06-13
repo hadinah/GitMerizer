@@ -51,7 +51,6 @@ def summarize():
 
     for username in usernames:
         response = requests.get(BASE_URL.format(username), headers=headers)
-        print("Git response Status:", response.status_code)
         if response.status_code != 200:
             continue
         events = response.json()
@@ -84,7 +83,6 @@ def summarize():
                 raw_map[repo].append(f"[{username}] Issue {action}: {title}")
 
     ai_input = "\n".join(ai_friendly_report)
-    print(ai_input)
     try:
         response = model.generate_content(ai_input, generation_config=generation_config)
         return jsonify({
