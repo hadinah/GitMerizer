@@ -141,6 +141,25 @@
     @media (max-width: 600px) {
       input { width: 100%; }
     }
+
+    .advanced-toggle {
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      text-decoration: underline;
+    }
+
+    .advanced-settings {
+      background: var(--card-bg);
+      padding: 0.8rem;
+      border-radius: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -151,6 +170,11 @@
     <input id="usernames" placeholder="GitHub usernames (comma-separated)" />
     <input id="hours" type="number" placeholder="Time window (hours)" value="2400" />
     <button onclick="generateSummary()">Summarize</button>
+  </div>
+
+  <div class="advanced-toggle" onclick="toggleAdvanced()">⚙️ Advanced Settings ▾</div>
+  <div class="advanced-settings" id="advancedSettings" style="display: none;">
+    <input id="max_pages" type="number" placeholder="Max pages (default: 1)" min="1" max="10"/>
   </div>
 
   <div id="loading" style="display:none;"><div class="spinner"></div></div>
@@ -164,6 +188,7 @@
       const usernames = document.getElementById("usernames").value
         .split(",").map(u => u.trim()).filter(Boolean);
       const hours = parseInt(document.getElementById("hours").value || "2400");
+      const max_pages = parseInt(document.getElementById("max_pages").value || "1");
 
       document.getElementById("loading").style.display = "block";
       document.getElementById("summary").innerHTML = "";
@@ -171,7 +196,7 @@
       const res = await fetch("/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernames, time_window: hours })
+        body: JSON.stringify({ usernames, time_window: hours, max_pages })
       });
 
       const data = await res.json();
@@ -202,6 +227,11 @@
     function toggleRaw(id) {
       const log = document.getElementById("log_" + id);
       if (log) log.style.display = (log.style.display === "none") ? "block" : "none";
+    }
+
+    function toggleAdvanced() {
+      const panel = document.getElementById("advancedSettings");
+      panel.style.display = panel.style.display === "none" ? "flex" : "none";
     }
   </script>
 

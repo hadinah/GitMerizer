@@ -14,7 +14,7 @@ You are a Markdown writer that generates beautifully styled summaries of GitHub 
 Write summaries using **Markdown syntax** for full compatibility with `marked.js`. 
 
 🟢 Every summary should:
-- Start with the **repository name as a bold `##` header**
+- Start with the **repository name(owner/repo) as a bold `##` header**
 - Use **paragraphs** with `**bold**`, `_italic_`, and `code` formatting to highlight details
 - Format repo events naturally as storytelling, avoiding plain lists
 - Include markdown features like `**bold**, _italic_, [links](https://github.com), and \`inline code\`` wherever it adds clarity
@@ -41,46 +41,48 @@ def summarize():
     data = request.json
     usernames = data.get("usernames", [])
     hours = int(data.get("time_window", 72))
+    max_pages = int(data.get("max_pages", 1))
     
     now = datetime.now()
     time_threshold = now - timedelta(hours=hours)
-    BASE_URL = "https://api.github.com/users/{}/events/public"
+    BASE_URL = "https://api.github.com/users/{}/events/public?page={}"
     
     ai_friendly_report = []
     raw_map = defaultdict(list)  # repo -> list of raw lines
 
     for username in usernames:
-        response = requests.get(BASE_URL.format(username), headers=headers)
-        if response.status_code != 200:
-            continue
-        events = response.json()
-
-        for event in events:
-            event_time = datetime.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-            if event_time < time_threshold:
+        for page_no in range(1, max_pages+1):
+            response = requests.get(BASE_URL.format(username, page_no), headers=headers)
+            if response.status_code != 200:
                 continue
-            repo = event["repo"]["name"]
+            events = response.json()
 
-            if event["type"] == "PushEvent":
-                for commit in event['payload']['commits']:
-                    msg = commit.get("message", "").strip()
-                    entry = f"{repo}: Commit - {msg}"
+            for event in events:
+                event_time = datetime.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                if event_time < time_threshold:
+                    break
+                repo = event["repo"]["name"]
+
+                if event["type"] == "PushEvent":
+                    for commit in event['payload']['commits']:
+                        msg = commit.get("message", "").strip()
+                        entry = f"{repo}: Commit - {msg}"
+                        ai_friendly_report.append(entry)
+                        raw_map[repo].append(f"[{username}] Commit: {msg}")
+
+                elif event["type"] == "PullRequestEvent":
+                    action = event['payload'].get("action", "unknown")
+                    title = event['payload'].get("pull_request", {}).get("title", "").strip()
+                    entry = f"{repo}: Pull Request {action} - {title}"
                     ai_friendly_report.append(entry)
-                    raw_map[repo].append(f"[{username}] Commit: {msg}")
+                    raw_map[repo].append(f"[{username}] PR {action}: {title}")
 
-            elif event["type"] == "PullRequestEvent":
-                action = event['payload'].get("action", "unknown")
-                title = event['payload'].get("pull_request", {}).get("title", "").strip()
-                entry = f"{repo}: Pull Request {action} - {title}"
-                ai_friendly_report.append(entry)
-                raw_map[repo].append(f"[{username}] PR {action}: {title}")
-
-            elif event["type"] == "IssuesEvent":
-                action = event['payload'].get("action", "unknown")
-                title = event['payload'].get("issue", {}).get("title", "").strip()
-                entry = f"{repo}: Issue {action} - {title}"
-                ai_friendly_report.append(entry)
-                raw_map[repo].append(f"[{username}] Issue {action}: {title}")
+                elif event["type"] == "IssuesEvent":
+                    action = event['payload'].get("action", "unknown")
+                    title = event['payload'].get("issue", {}).get("title", "").strip()
+                    entry = f"{repo}: Issue {action} - {title}"
+                    ai_friendly_report.append(entry)
+                    raw_map[repo].append(f"[{username}] Issue {action}: {title}")
 
     ai_input = "\n".join(ai_friendly_report)
     try:
