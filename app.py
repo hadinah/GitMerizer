@@ -59,7 +59,7 @@ def summarize():
 
             for event in events:
                 event_time = datetime.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-                if event_time < time_threshold:
+                if event_time < time_threshold and hours != 0:
                     break
                 repo = event["repo"]["name"]
 
