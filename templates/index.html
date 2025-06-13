@@ -168,13 +168,13 @@
 
   <div class="input-box">
     <input id="usernames" placeholder="GitHub usernames (comma-separated)" />
-    <input id="hours" type="number" placeholder="Time window (hours)" value="2400" min="0" max="7200"/>
+    <input id="hours" type="number" placeholder="Time window (hours)" value="2400" min="0" max="7200" onkeyup="if(this.value > 7200) this.value = 7200;">/>
     <button onclick="generateSummary()">Summarize</button>
   </div>
 
   <div class="advanced-toggle" onclick="toggleAdvanced()">⚙️ Advanced Settings ▾</div>
   <div class="advanced-settings" id="advancedSettings" style="display: none;">
-    <input id="max_pages" type="number" placeholder="Max pages (default: 1)" min="1" max="10"/>
+    <input id="max_pages" type="number" placeholder="Max pages (default: 1)" min="1" max="10" onkeyup="if(this.value > 10) this.value = 10;">/>
   </div>
 
   <div id="loading" style="display:none;"><div class="spinner"></div></div>
