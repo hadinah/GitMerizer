@@ -11,8 +11,8 @@ Built for developers, teams, and curious minds who want to understand **what’s
 
 - 🔍 Summarizes activity by GitHub username(s)
 - 🕒 Custom time windows (e.g. past 24h, 7 days...)  
-  _Although we’re limited by GitHub’s Events API: it only retains events from the past **30 days** and up to **300 events per user**, with older activity dropped — so long-term history is off the table._  (We could get around this but thays for the next version o-o)
-  [📎 GitHub Events API Reference](https://docs.github.com/en/rest/activity/events)
+>  _Although we’re limited by GitHub’s Events API: it only retains events from the past **30 days** and up to **300 events per user**, with older activity dropped — so long-term history is off the table._  (We could get around this but thays for the next version o-o)
+> [📎 GitHub Events API Reference](https://docs.github.com/en/rest/activity/events)
 - 🧑‍🎨 Stylish Markdown output rendered beautifully in-browser
 - ⚙️ Powered by **Gemini Flash** (Generative AI by Google)
 - 🧾 Shows both summaries _and_ raw logs (per repo)
